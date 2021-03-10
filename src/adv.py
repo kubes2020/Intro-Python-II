@@ -1,7 +1,8 @@
 from room import Room
 from player import Player
-# Declare all the rooms
+from item import Item
 
+# Declare all the rooms
 room = {
     'outside':  Room("Outside Cave Entrance",
                      "North of you, the cave mount beckons"),
@@ -21,9 +22,7 @@ chamber! Sadly, it has already been completely emptied by
 earlier adventurers. The only exit is to the south."""),
 }
 
-
 # Link rooms together
-
 room['outside'].n_to = room['foyer']
 room['foyer'].s_to = room['outside']
 room['foyer'].n_to = room['overlook']
@@ -33,55 +32,66 @@ room['narrow'].w_to = room['foyer']
 room['narrow'].n_to = room['treasure']
 room['treasure'].s_to = room['narrow']
 
+# Items Available
+item = {
+    'fork': Item("fork", """- a metal tool used for eating"""),
+    'sword': Item("sword", """- a metal tool used for protection and hunting"""),
+    'bucket': Item("bucket", """- a tool used for carrying items"""),
+    'lighter': Item("lighter", """- a tool to make fire""")
+}
+
+# Add Items to a Room
+
+room['outside'].add_item(item['bucket'])
+
+
 #
 # Main
 #
 
 # Make a new player object that is currently in the 'outside' room.
 player1 = Player("Brian", room['outside'])
-# print(room['outside'])
-# print(player1.in_room)
-# print(player1)
+
+directions = ['n', 's', 'e', 'w']
+
+# this function parses the user's input and either 'get's or 'drop's an item
+
+
+def parse_command(command):
+    words = command.split()
+    if words[0] == 'get':
+        return player1.add_item(item[words[1]])
+    elif words[0] == 'drop':
+        return player1.drop_item(item[words[1]])
 
 
 # Write a loop that:
-movement = ""
-while movement != "Q":
+command = ""
+while command != "Q":
     # * Prints the current room name
-    print(f"\nCurrent location: {player1.in_room.name}")
+    print(f"\n{player1.current_room}")
+    print("player1 in room", {player1.current_room.name})
 # * Prints the current description (the textwrap module might be useful here).
-    print(f"description: {player1.in_room.description}")
+
+# Prints the current items in Room that are available to pick up
 # * Waits for user input and decides what to do.
-#
 # If the user enters a cardinal direction, attempt to move to the room there.
-# Print an error message if the movement isn't allowed.
-#
+# Print an error message if the command isn't allowed.
 # If the user enters "q", quit the game.
-    movement = input(
-        "Where do you want to go? (enter: N, S, E, W, or Q to quit): ").upper()
-    if movement == "Q":
+    if len(player1.current_room.items_here) > 0:
+        command = input(
+            "Do you want to pick up an item or drop something you're holding onto? (enter: Y or N)").lower()
+        if command == "y":
+            command = input(
+                "What item? (enter: Get <item name> or Drop <item name>) ")
+            parse_command(command)
+            print("player1 has", player1)
+
+    command = input(
+        "Where do you want to go? (enter: N, S, E, W, or Q to quit): ").lower()
+    if command == "q":
         break
-    elif movement == "N":
-        try:
-            player1.in_room.n_to
-            player1.in_room = player1.in_room.n_to
-        except:
-            print("You cannot go there")
-    elif movement == "S":
-        try:
-            player1.in_room.s_to
-            player1.in_room = player1.in_room.s_to
-        except:
-            print("You cannot go there")
-    elif movement == "E":
-        try:
-            player1.in_room.e_to
-            player1.in_room = player1.in_room.e_to
-        except:
-            print("You cannot go there")
-    elif movement == "W":
-        try:
-            player1.in_room.w_to
-            player1.in_room = player1.in_room.w_to
-        except:
-            print("You cannot go there")
+    elif command in directions:
+        player1.move(command)
+    else:
+        print("unknown command")
